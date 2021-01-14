@@ -4,12 +4,37 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 
 const dishRouter = require('./routes/dishRouter');
+const promoRouter = require('./routes/promoRouter');
+const leaderRouter = require('./routes/leaderRouter');
 const hostname = 'localhost';
 const port = 3000;
 const app = express();
 app.use(morgan('dev'));
 app.use(bodyParser.json());
-//LƯU Ý Ở DÒNG 66
+
+app.use('/dishes', dishRouter); 
+app.use('/promotions', promoRouter);
+app.use('/leaders', leaderRouter);
+app.use(express.static(__dirname+ '/public'));
+//phục vụ tệp tin tĩnh từ dirname + public => tìm từ file public trong thư
+//mục gốc để phục vụ
+//nếu chỉ để localhost:3000 sẽ mặc định phục vụ file index.html
+
+//ở đây chưa chỉ ra cách handle file không tồn tại nên nếu gặp sẽ sử dụng 
+//app use "This is an Express Server" ở dưới
+
+app.use((req,res, next) => {
+    //console.log.apply(req.headers);
+
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/html');
+    res.end('<html><body><h1>This is an Express Server</h1></body></html');
+}); //next(optional) gọi thêm middleware
+
+const server = http.createServer(app);
+server.listen(port, hostname, () => {
+    console.log(`Server running at http://${hostname}:${port}`)
+});
 
 // app.all('/dishes', (req,res,next) => {
 //     //để all mà không specify get put post
@@ -17,8 +42,8 @@ app.use(bodyParser.json());
 //     res.statusCode = 200;
 //     res.setHeader('Content-Type', 'text/plain');
 //     next(); //trùng với next ở trên, tiếp tục tìm kiếm thêm các miêu tả ở dưới mà khớp với "dishes" ở trên
-//     //ví dụ ở đây se gọi tiếp đến dòng 21, req và res sẽ tiếp tục được truyền vào tham số ở dòng 21
-//     //vì vậy nếu req và res bị sửa đổi ở hàm này thì nó sẽ tiếp tục được truyền vào hàm ở dòng 21
+//     //ví dụ ở đây se gọi tiếp đến dòng app.get ..., req và res sẽ tiếp tục được truyền vào tham số 
+//     //vì vậy nếu req và res bị sửa đổi ở hàm này thì nó sẽ tiếp tục được truyền vào hàm app.get...
 // });
 
 // app.get('/dishes', (req,res,next) => {
@@ -63,24 +88,3 @@ app.use(bodyParser.json());
 //     res.end('Deleting dish: ' + req.params.dishId);
 // });
 
-app.use('/dishes', dishRouter); //'/dishes/:dishId'?
-app.use(express.static(__dirname+ '/public'));
-//phục vụ tệp tin tĩnh từ dirname + public => tìm từ file public trong thư
-//mục gốc để phục vụ
-//nếu chỉ để localhost:3000 sẽ mặc định phục vụ file index.html
-
-//ở đây chưa chỉ ra cách handle file không tồn tại nên nếu gặp sẽ sử dụng 
-//app use "This is an Express Server" ở dưới
-
-app.use((req,res, next) => {
-    //console.log.apply(req.headers);
-
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/html');
-    res.end('<html><body><h1>This is an Express Server</h1></body></html');
-}); //next(optional) gọi thêm middleware
-
-const server = http.createServer(app);
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}`)
-});
