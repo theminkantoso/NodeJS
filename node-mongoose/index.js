@@ -20,7 +20,7 @@ connect.then((db) => {
             return Dishes.find({}).exec(); 
             //find all the dishes. exec: ensure this is executed, return a promise
             //that promise can be returned so it can be chained the method to the remaining ones
-
+            //return Dishes.find({}); 
         })
         .then((dishes) => {
             console.log(dishes);
