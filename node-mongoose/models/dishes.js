@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const commentSchema = new Schema({
+var commentSchema = new Schema({
     rating: {
         type: Number,
         min: 1,
@@ -20,7 +20,7 @@ const commentSchema = new Schema({
         timestamps: true //automatically create add and update values
 });
 
-const dishSchema = new Schema({
+var dishSchema = new Schema({
     name: {
         type: String,
         required: true,
