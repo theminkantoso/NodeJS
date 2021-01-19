@@ -20,6 +20,8 @@ var commentSchema = new Schema({
     }
 },{
         timestamps: true //automatically create add and update values
+},{
+    usePushEach:true
 });
 
 var dishSchema = new Schema({
@@ -55,9 +57,13 @@ var dishSchema = new Schema({
     },
     comments: [commentSchema] //sub-document
 },{
-    timestamps: true //automatically create add and update values
-    
+    timestamps: true //automatically create add and update values 
+},{
+    usePushEach:true
 });
+
+
+
 
 var Dishes = mongoose.model('Dish', dishSchema);
 
