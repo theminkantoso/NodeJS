@@ -30,7 +30,7 @@ var leaderSchema = new Schema({
 },{
     timestamps: true //automatically create add and update values 
 },{
-    usePushEach:true
+    usePushEach:true //ERROR FIXING
 });
 
 var Leaders = mongoose.model('Leader', leaderSchema);

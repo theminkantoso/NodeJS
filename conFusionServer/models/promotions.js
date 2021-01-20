@@ -36,7 +36,7 @@ var promotionSchema = new Schema({
 },{
     timestamps: true //automatically create add and update values 
 },{
-    usePushEach:true
+    usePushEach:true //ERROR FIXING
 });
 
 var Promotions = mongoose.model('Promotion', promotionSchema);

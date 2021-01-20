@@ -59,7 +59,7 @@ var dishSchema = new Schema({
 },{
     timestamps: true //automatically create add and update values 
 },{
-    usePushEach:true
+    usePushEach:true //ERROR FIXING
 });
 
 
