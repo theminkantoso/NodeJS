@@ -3,6 +3,8 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -33,34 +35,59 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+// app.use(cookieParser());
+// app.use(cookieParser('12345-67890-09876-54321'));
+
+app.use(session({
+  name: 'session-id',
+  secret: '12345-67890-09876-54321',
+  saveUninitialized: false,
+  resave: false,
+  store: new FileStore()
+}));
 
 function auth(req, res, next) {
-  console.log(req.headers);
-  var authHeader = req.headers.authorization;
-  if(!authHeader) {
-    var err = new Error('You are not authenticated!');
-
-    res.setHeader('WWW-Authenticate', 'Basic');
-    err.status = 401; //not authorized
-    return next(err); //next to the middleware handle error
-  }
-
-  var auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
-   //second part of the array is the decoded string
-   //this operate two splits, one into the decoded string and one to divide this decoded string to username and password
-  var username = auth[0];
-  var password = auth[1];
-
-  if(username === 'admin' && password === 'password') {
-    next(); //set no next middleware service the request
+  //console.log(req.headers);
+  //console.log(req.signedCookies);
+  console.log(req.session);
+  if (!req.session.user) {
+    var authHeader = req.headers.authorization;
+    if(!authHeader) {
+      var err = new Error('You are not authenticated!');
+  
+      res.setHeader('WWW-Authenticate', 'Basic');
+      err.status = 401; //not authorized
+      return next(err); //next to the middleware handle error
+    }
+    
+  
+    var auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+     //second part of the array is the decoded string
+     //this operate two splits, one into the decoded string and one to divide this decoded string to username and password
+    var username = auth[0];
+    var password = auth[1];
+  
+    if(username === 'admin' && password === 'password') {
+      req.session.user = 'admin'; 
+      //if the basic authentication is successful then setup the cookie in the client-side here
+      next(); //set no next middleware service the request
+    } else {
+      var err = new Error('You are not authenticated!');
+  
+      res.setHeader('WWW-Authenticate', 'Basic');
+      err.status = 401; 
+      return next(err);
+    }
   } else {
-    var err = new Error('You are not authenticated!');
-
-    res.setHeader('WWW-Authenticate', 'Basic');
-    err.status = 401; 
-    return next(err);
+    if(req.session.user === 'admin') {
+      next(); //allow request to pass through
+    } else {
+      var err = new Error('You are not authenticated!');
+      err.status = 401; 
+      return next(err);
+    }
   }
+  
 }
 app.use(auth);
 
