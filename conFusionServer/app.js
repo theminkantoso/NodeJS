@@ -5,6 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
+var passport = require('passport');
+var authenticate = require('./authenticate');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -46,6 +48,12 @@ app.use(session({
   store: new FileStore()
 }));
 
+//if user is logged in it called the authenticate 'local' will automatically add user property to the request message
+//the passport session automatically serialized the user info and store it in the session
+//automatically load req.user
+app.use(passport.initialize());
+app.use(passport.session());
+
 //signup before authentication
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
@@ -53,23 +61,34 @@ app.use('/users', usersRouter);
 //however any other step will be required to be authenticated
 
 function auth(req, res, next) {
-  console.log(req.session);
-  if (!req.session.user) {
-    var err = new Error('You are not authenticated!');
+  console.log(req.user);
 
-    res.setHeader('WWW-Authenticate', 'Basic');
-    err.status = 401; 
-    return next(err); 
-  } else {
-    if(req.session.user === 'authenticated') {
-      next(); //allow request to pass through
-    } else {
-      var err = new Error('You are not authenticated!');
-      err.status = 401; 
-      return next(err);
-    }
+  if (!req.user) {
+    //authentication was not been done
+    var err = new Error('You are not authenticated!');
+    err.status = 403;
+    next(err);
+  }
+  else {
+    next();
   }
 }
+  // console.log(req.session);
+  // if (!req.session.user) {
+  //   var err = new Error('You are not authenticated!');
+
+  //   res.setHeader('WWW-Authenticate', 'Basic');
+  //   err.status = 401; 
+  //   return next(err); 
+  // } else {
+  //   if(req.session.user === 'authenticated') {
+  //     next(); //allow request to pass through
+  //   } else {
+  //     var err = new Error('You are not authenticated!');
+  //     err.status = 401; 
+  //     return next(err);
+  //   }
+  // }
 
 // function auth(req, res, next) {
 //   //console.log(req.headers);
