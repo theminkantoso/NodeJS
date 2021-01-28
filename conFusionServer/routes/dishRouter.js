@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+var authenticate = require('../authenticate');
+
 const Dishes = require('../models/dishes');
 
 const dishRouter = express.Router();
@@ -17,7 +19,8 @@ dishRouter.route('/')
     }, (err) => next(err))
     .catch((err) => next(err)); //pass the error to the overall error handling
 })
-.post((req,res,next) => {
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.post(authenticate.verifyUser, (req,res,next) => {
    Dishes.create(req.body)
    .then((dish) => {
         console.log('Dish Created ', dish);
@@ -27,12 +30,14 @@ dishRouter.route('/')
    }, (err) => next(err))
    .catch((err) => next(err));
 })
-.put((req,res,next) => {
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.put(authenticate.verifyUser, (req,res,next) => {
     res.statusCode = 403; //forbidden
     //put on "dishes" doesn't make sense
     res.end('PUT operation not supported on /dishes');
 })
-.delete((req,res,next) => {
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.delete(authenticate.verifyUser, (req,res,next) => {
     Dishes.remove({})
     .then((resp) => {
         res.statusCode = 200;
@@ -51,14 +56,16 @@ dishRouter.route('/:dishId')
         res.json(dish); //send back a respond to the server
     }, (err) => next(err))
     .catch((err) => next(err));
-    
 })
-.post((req,res,next) => {
+
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.post(authenticate.verifyUser, (req,res,next) => {
     res.statusCode = 403; 
     res.end('POST operation not supported on /dishes/' 
         + req.params.dishId);
 })
-.put((req,res,next) => {
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.put(authenticate.verifyUser, (req,res,next) => {
     Dishes.findByIdAndUpdate(req.params.dishId, {
         $set: req.body
     }, {
@@ -71,7 +78,8 @@ dishRouter.route('/:dishId')
     }, (err) => next(err))
     .catch((err) => next(err));
 })
-.delete((req,res,next) => {
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.delete(authenticate.verifyUser, (req,res,next) => {
     Dishes.findByIdAndRemove(req.params.dishId)
     .then((resp) => {
         res.statusCode = 200;
@@ -98,7 +106,8 @@ dishRouter.route('/:dishId/comments')
     }, (err) => next(err))
     .catch((err) => next(err)); //pass the error to the overall error handling
 })
-.post((req,res,next) => {
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.post(authenticate.verifyUser, (req,res,next) => {
     //look for a dish, take a set of comment and push in the dish
    Dishes.findById(req.params.dishId)
    .then((dish) => {
@@ -123,11 +132,13 @@ dishRouter.route('/:dishId/comments')
    }, (err) => next(err))
    .catch((err) => next(err));
 })
-.put((req,res,next) => {
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.put(authenticate.verifyUser, (req,res,next) => {
     res.statusCode = 403; //forbidden
     res.end('PUT operation not supported on /dishes/' + req.params.dishId + '/comments');
 })
-.delete((req,res,next) => {
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.delete(authenticate.verifyUser, (req,res,next) => {
     //if dish not null, then delete all comment
     Dishes.findById(req.params.dishId)
     .then((dish) => {
@@ -179,12 +190,14 @@ dishRouter.route('/:dishId/comments/:commentId')
     }, (err) => next(err))
     .catch((err) => next(err)); //pass the error to the overall error handling
 })
-.post((req,res,next) => {
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.post(authenticate.verifyUser, (req,res,next) => {
     res.statusCode = 403; 
     res.end('POST operation not supported on /dishes/' 
         + req.params.dishId + '/comments/' + req.params.commentId);
 })
-.put((req,res,next) => {
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.put(authenticate.verifyUser, (req,res,next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {
@@ -215,7 +228,8 @@ dishRouter.route('/:dishId/comments/:commentId')
     }, (err) => next(err))
     .catch((err) => next(err));
 })
-.delete((req,res,next) => {
+//TOKEN: starts authenticating, authenticate.verifyUser is the barrier
+.delete(authenticate.verifyUser, (req,res,next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {

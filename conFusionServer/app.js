@@ -19,7 +19,9 @@ const mongoose = require('mongoose');
 const Dishes = require('./models/dishes');
 const { EROFS } = require('constants');
 
-const url = 'mongodb://localhost:27017/conFusion';
+// const url = 'mongodb://localhost:27017/conFusion';
+var config = require('./config');
+const url = config.mongoUrl;
 const connect = mongoose.connect(url);
 
 connect.then((db) => {
@@ -40,39 +42,54 @@ app.use(express.urlencoded({ extended: false }));
 // app.use(cookieParser());
 // app.use(cookieParser('12345-67890-09876-54321'));
 
-app.use(session({
-  name: 'session-id',
-  secret: '12345-67890-09876-54321',
-  saveUninitialized: false,
-  resave: false,
-  store: new FileStore()
-}));
+// app.use(session({
+//   name: 'session-id',
+//   secret: '12345-67890-09876-54321',
+//   saveUninitialized: false,
+//   resave: false,
+//   store: new FileStore()
+// }));
 
 //if user is logged in it called the authenticate 'local' will automatically add user property to the request message
 //the passport session automatically serialized the user info and store it in the session
 //automatically load req.user
 app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.session());
 
 //signup before authentication
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+//FROM TOKEN: leave the public folder open for anybody to access
+
+//TOKEN: If a user is doing a get request, the user just wants to retrieve information. 
+//So, for example, on the client side if I'm implementing a web application using Angular or a client application using Ionic or native script, 
+//then maybe I want to implement my app in such a way that the main page will display information already, the genetic information that you want to make available to anybody that visits your website or that opens your app. 
+//So, basic information can be displayed there. But if you want to change anything, then you expect the user to be authenticated. So, you will allow POST operations, put operations, and delete operations to be done only by authenticated users. Similarly, for comments for example, you can say that comments can be only posted or modified by authenticated users. 
+//So, you can restrict only some routes for authenticated users, the other route you can leave them open.
+//TOKEN
+
+//=> GET is open, POST, PUT, DELETE requires authenticate
+
 //user can access the index and users file without being authenticated
 //however any other step will be required to be authenticated
 
-function auth(req, res, next) {
-  console.log(req.user);
+//applied to every incoming request
+// function auth(req, res, next) {
+//   console.log(req.user);
 
-  if (!req.user) {
-    //authentication was not been done
-    var err = new Error('You are not authenticated!');
-    err.status = 403;
-    next(err);
-  }
-  else {
-    next();
-  }
-}
+//   if (!req.user) {
+//     //authentication was not been done
+//     var err = new Error('You are not authenticated!');
+//     err.status = 403;
+//     next(err);
+//   }
+//   else {
+//     next();
+//   }
+// }
+// app.use(auth);
+//REMOVE FROM TOKEN, only applied on certain routes 
+
   // console.log(req.session);
   // if (!req.session.user) {
   //   var err = new Error('You are not authenticated!');
@@ -133,7 +150,6 @@ function auth(req, res, next) {
 //   }
 // }
 
-app.use(auth);
 
 app.use(express.static(path.join(__dirname, 'public')));
 

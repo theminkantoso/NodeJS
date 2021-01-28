@@ -2,6 +2,7 @@ var express = require('express');
 const bodyParser = require('body-parser');
 var User = require('../models/user');
 var passport = require('passport');
+var authenticate = require('../authenticate');
 
 var router = express.Router();
 router.use(bodyParser.json());
@@ -98,13 +99,25 @@ router.post('/signup', function(req, res, next) {
 
 // })
 
+//TOKEN:
+//we're not going to be using sessions anymore. Instead, when the user is authenticated using the local strategy, we will issue a token to the user.
+// So, inside this router.POST method that we have done on that /login endpoint, I'm going to create a token and pass this token back to the user
+
+//Now, this scheme can also be used when you use third-party authentication like based on OAuth 2.0, which we will examine in the next module. 
+//Now, the procedure will be similar.
+// You will be creating a token when the user is authenticated by the third-party or OAuth authentication provider, and then you will pass the token back to the user, in a similar approach as you see here. 
+
+// So, what happens now is that when the user authenticates on the /login endpoint and the user is successfully authenticated, then the token will be created by the server and sent back to the client or the user. 
+//So, the client will include the token in every subsequent incoming request in the authorization header. 
+
 router.post('/login', passport.authenticate('local'), (req, res) => {
   //PASSPORT: expect username and password to be included in the body of the incoming post message
   //if there is any error in the authentication function then an error will be sent back. We only proceed if authentication is successfull
   //simplify the code
+  var token = authenticate.getToken({_id: req.user._id}); //sufficient enough, keep the JSON Web Token small
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.json({success: true, status: 'You are successfully logged in!'});
+  res.json({success: true, token: token, status: 'You are successfully logged in!'});
 });
 
 router.get('/logout', (req, res) => {
