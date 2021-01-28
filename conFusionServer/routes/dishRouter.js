@@ -12,6 +12,8 @@ dishRouter.use(bodyParser.json());
 dishRouter.route('/') 
 .get((req,res,next) => {
     Dishes.find({})
+    .populate('comments.author') //when the dishes being constructed, we gonna populate the author field inside there from the user document in there
+    // this call to the populate will ensure that the other field will be populated with the information as required.
     .then((dishes) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -50,6 +52,7 @@ dishRouter.route('/')
 dishRouter.route('/:dishId') 
 .get((req,res,next) => {
     Dishes.findById(req.params.dishId)
+    .populate('comments.author')
     .then((dish) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -92,6 +95,7 @@ dishRouter.route('/:dishId')
 dishRouter.route('/:dishId/comments') 
 .get((req,res,next) => {
     Dishes.findById(req.params.dishId)
+    .populate('comments.author')
     .then((dish) => {
         if (dish != null) {
             res.statusCode = 200;
@@ -112,15 +116,24 @@ dishRouter.route('/:dishId/comments')
    Dishes.findById(req.params.dishId)
    .then((dish) => {
         if (dish != null) {
+            //updated the dish schema, only save the reference to the object ID
+            //user._id verified via verifyUser function above
+            //no longer send from the client side, server side automatically generate author ID reference
+            req.body.author = req.user._id;
             //1 push comment
             //2 save updated dish
             //3 return updated dish to user
             dish.comments.push(req.body);
             dish.save()
             .then((dish) => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(dish); 
+                Dishes.findById(dish._id)
+                .populate('comments.author')
+                //this modification is required because now I need to populate the author's information back into the comment before I can send the current back to the user.
+                .then((dish) => {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(dish);
+                })    
             }, (err) => next(err));
         
         } else {
@@ -172,6 +185,7 @@ dishRouter.route('/:dishId/comments')
 dishRouter.route('/:dishId/comments/:commentId') 
 .get((req,res,next) => {
     Dishes.findById(req.params.dishId)
+    .populate('comments.author')
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {
             res.statusCode = 200;
@@ -211,9 +225,13 @@ dishRouter.route('/:dishId/comments/:commentId')
             }
             dish.save()
             .then((dish) => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(dish); 
+                Dishes.findById(dish._id)
+                .populate('comments.author')
+                .then((dish) => {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(dish); 
+                })
             }, (err) => next(err));
         } else if (dish == null) {
             err = new Error('Dish ' + req.params.dishId + ' not found');
@@ -236,9 +254,13 @@ dishRouter.route('/:dishId/comments/:commentId')
             dish.comments.id(req.params.commentId).remove();
             dish.save()
             .then((dish) => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(dish); 
+                Dishes.findById(dish._id)
+                .populate('comments.author')
+                .then((dish) => {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(dish); 
+                })
             }, (err) => next(err));
         
         } else if (dish == null) {

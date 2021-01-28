@@ -15,8 +15,9 @@ var commentSchema = new Schema({
         required: true
     },
     author: {
-        type: String,
-        required: true
+        //reference to the ID of the user document
+        type: mongoose.Schema.Types.ObjectId, //reference to the user documents
+        ref: 'User'
     }
 },{
         timestamps: true //automatically create add and update values
