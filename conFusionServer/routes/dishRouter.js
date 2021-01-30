@@ -22,7 +22,7 @@ dishRouter.route('/')
     .catch((err) => next(err)); //pass the error to the overall error handling
 })
 //TOKEN: starts authenticating, authenticate.verifyUser is the barrier
-.post(authenticate.verifyUser, (req,res,next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req,res,next) => {
    Dishes.create(req.body)
    .then((dish) => {
         console.log('Dish Created ', dish);
@@ -33,13 +33,13 @@ dishRouter.route('/')
    .catch((err) => next(err));
 })
 //TOKEN: starts authenticating, authenticate.verifyUser is the barrier
-.put(authenticate.verifyUser, (req,res,next) => {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req,res,next) => {
     res.statusCode = 403; //forbidden
     //put on "dishes" doesn't make sense
     res.end('PUT operation not supported on /dishes');
 })
 //TOKEN: starts authenticating, authenticate.verifyUser is the barrier
-.delete(authenticate.verifyUser, (req,res,next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req,res,next) => {
     Dishes.remove({})
     .then((resp) => {
         res.statusCode = 200;
@@ -62,13 +62,13 @@ dishRouter.route('/:dishId')
 })
 
 //TOKEN: starts authenticating, authenticate.verifyUser is the barrier
-.post(authenticate.verifyUser, (req,res,next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req,res,next) => {
     res.statusCode = 403; 
     res.end('POST operation not supported on /dishes/' 
         + req.params.dishId);
 })
 //TOKEN: starts authenticating, authenticate.verifyUser is the barrier
-.put(authenticate.verifyUser, (req,res,next) => {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req,res,next) => {
     Dishes.findByIdAndUpdate(req.params.dishId, {
         $set: req.body
     }, {
@@ -82,7 +82,7 @@ dishRouter.route('/:dishId')
     .catch((err) => next(err));
 })
 //TOKEN: starts authenticating, authenticate.verifyUser is the barrier
-.delete(authenticate.verifyUser, (req,res,next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req,res,next) => {
     Dishes.findByIdAndRemove(req.params.dishId)
     .then((resp) => {
         res.statusCode = 200;
@@ -151,7 +151,7 @@ dishRouter.route('/:dishId/comments')
     res.end('PUT operation not supported on /dishes/' + req.params.dishId + '/comments');
 })
 //TOKEN: starts authenticating, authenticate.verifyUser is the barrier
-.delete(authenticate.verifyUser, (req,res,next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req,res,next) => {
     //if dish not null, then delete all comment
     Dishes.findById(req.params.dishId)
     .then((dish) => {
@@ -215,8 +215,13 @@ dishRouter.route('/:dishId/comments/:commentId')
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {
-            //in the body of the message, the update for the comment is specified
-            //only allow to update rating, not author etc
+            if (!(dish.comments.id(req.params.commentId).author).equals(req.user._id)) {
+                var err = new Error('You are not allowed to perform this operation on this comment');
+                err.status = 403;
+                return next(err);
+            }
+                //in the body of the message, the update for the comment is specified
+                //only allow to update rating, not author etc
             if (req.body.rating) {
                 dish.comments.id(req.params.commentId).rating = req.body.rating;
             }
@@ -251,6 +256,11 @@ dishRouter.route('/:dishId/comments/:commentId')
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {
+            if (!(dish.comments.id(req.params.commentId).author).equals(req.user._id)) {
+                var err = new Error('You are not allowed to perform this operation on this comment');
+                err.status = 403;
+                return next(err);
+            }
             dish.comments.id(req.params.commentId).remove();
             dish.save()
             .then((dish) => {
@@ -262,7 +272,6 @@ dishRouter.route('/:dishId/comments/:commentId')
                     res.json(dish); 
                 })
             }, (err) => next(err));
-        
         } else if (dish == null) {
             err = new Error('Dish ' + req.params.dishId + ' not found');
             err.status = 404;
