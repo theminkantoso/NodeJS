@@ -32,6 +32,20 @@ connect.then((db) => {
 
 var app = express();
 
+// Secure traffic only
+app.all('*', (req, res, next) => { //* is all
+  if (req.secure) {
+    return next();
+  }
+  else {
+    res.redirect(307, 'https://' + req.hostname + ':' + app.get('secPort') + req.url);
+  //f you say a localhost:3000, that localhost:3000 will be covered by the first part and this will be redirected to localhost:3443 by this configuration here
+  //307 here represents that the target resource resides temporarily under different URL. 
+  //And the user agent must not change the request method if it reforms in automatic redirection to that URL. 
+  //So, I'll be expecting user agent to retry with the same method that they have used for the original end point.
+}
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
