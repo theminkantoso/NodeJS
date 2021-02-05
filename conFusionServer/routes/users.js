@@ -3,12 +3,13 @@ const bodyParser = require('body-parser');
 var User = require('../models/user');
 var passport = require('passport');
 var authenticate = require('../authenticate');
+const cors = require('./cors');
 
 var router = express.Router();
 router.use(bodyParser.json());
 
 /* GET users listing. */
-router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {
+router.get('/', cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {
   User.find({})
   .then((err, users) => {
       if (err) {
@@ -21,7 +22,7 @@ router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req,
   .catch((err) => next(err));
 });	
 
-router.post('/signup', function(req, res, next) {
+router.post('/signup', cors.corsWithOptions, function(req, res, next) {
   // User.findOne({username: req.body.username})
   //username and password will be pass in the json body part
   // .then((user) => {
@@ -133,7 +134,7 @@ router.post('/signup', function(req, res, next) {
 // So, what happens now is that when the user authenticates on the /login endpoint and the user is successfully authenticated, then the token will be created by the server and sent back to the client or the user. 
 //So, the client will include the token in every subsequent incoming request in the authorization header. 
 
-router.post('/login', passport.authenticate('local'), (req, res) => {
+router.post('/login', cors.corsWithOptions, passport.authenticate('local'), (req, res) => {
   //PASSPORT: expect username and password to be included in the body of the incoming post message
   //if there is any error in the authentication function then an error will be sent back. We only proceed if authentication is successfull
   //simplify the code
