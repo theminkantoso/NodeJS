@@ -13,7 +13,7 @@ dishRouter.use(bodyParser.json());
 dishRouter.route('/') 
 .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
 .get(cors.cors, (req,res,next) => {
-    Dishes.find({})
+    Dishes.find(req.query)
     .populate('comments.author') //when the dishes being constructed, we gonna populate the author field inside there from the user document in there
     // this call to the populate will ensure that the other field will be populated with the information as required.
     .then((dishes) => {
