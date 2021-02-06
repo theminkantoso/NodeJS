@@ -24,7 +24,7 @@ promoRouter.route('/')
 .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req,res,next) => {
     Promotions.create(req.body)
    .then((promotion) => {
-        console.log('Dish Created ', dish);
+        console.log('Promo Created ', dish);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.json(promotion); //send back a respond to the server
